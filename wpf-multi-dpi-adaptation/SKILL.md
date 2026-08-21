@@ -21,6 +21,7 @@ description: Make a WPF desktop app automatically adapt to different monitor res
 
 ```
 适配进度：
+- [ ] （可选）窗口级脚手架是否漏设：见 `wpf-dpi-static-check`，不在本 skill 里展开
 - [ ] 第 1 层：app.manifest 启用 PerMonitorV2（最关键，缺它跨屏必模糊）
 - [ ] 第 2 层：窗口用弹性布局 + MinSize + UseLayoutRounding
 - [ ] 第 3 层：需要的页面加 SizeChanged 响应式断点
@@ -179,7 +180,7 @@ public static class DpiTextRenderingHelper
 // 每个 Window 构造函数里：DpiTextRenderingHelper.Attach(this);
 ```
 
-注意：**删掉子级 XAML 里所有写死的 `TextOptions.TextFormattingMode="Ideal"`**，否则局部值会覆盖继承，动态切换失效。每个独立 Window（登录窗、弹出窗）都要各自 Attach 并设置 `UseLayoutRounding="True"`——这些属性不会跨 Window 继承。
+注意：**删掉子级 XAML 里所有写死的 `TextOptions.TextFormattingMode="Ideal"`**，否则局部值会覆盖继承，动态切换失效。每个独立 Window（登录窗、弹出窗）都要各自 Attach 并设置 `UseLayoutRounding="True"`——这些属性不会跨 Window 继承。层内遮罩（DialogHost）会继承宿主 Window，但阴影包文字、Viewbox 撑卡片仍会出问题；静态差集见 `wpf-dpi-static-check` 步骤 6，不要指望只查 Window 能覆盖。
 
 ### 5.2 `Effect`（如 DropShadowEffect）会杀死子树内文字的 ClearType
 
@@ -228,7 +229,7 @@ public static class DpiTextRenderingHelper
 - 全局写死 `TextFormattingMode="Ideal"` → 100% 缩放屏上小字发灰；按 DPI 动态切换（见 5.1）。
 - 在含文字的元素上挂 `DropShadowEffect` → 子树 ClearType 失效；阴影移到无文字的背景层（见 5.2）。
 - 用 `Viewbox` / 小数倍 `ScaleTransform` 缩放含文字的 UI → 像素对齐失效必发虚（见 5.3）。
-- 独立 Window（登录窗等）漏设 `UseLayoutRounding` / 漏挂 DPI 切换 → 属性不跨 Window 继承，每个窗口都要设。
+- 独立 Window（登录窗等）漏设 `UseLayoutRounding` / 漏挂 DPI 切换 → 属性不跨 Window 继承，每个窗口都要设。差集用 `wpf-dpi-static-check` 搜，不要靠肉眼。
 - 在 `Loaded` 之前读 `ActualWidth`/`ActualHeight` 得到 0 → 用 `DispatcherPriority.Loaded` 延迟。
 - 给容器写死像素宽高 / 用 `StackPanel` 包大列表 → 破坏伸缩与虚拟化（列表卡顿另见 `wpf-list-virtualization-debug` skill）。
 - 依赖 WPF 合成粗体 → 高分屏发虚；改为各字重独立 TTF。

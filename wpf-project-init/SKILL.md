@@ -6,7 +6,9 @@ description: >-
   and Per-Monitor DPI foundation (app.manifest PerMonitorV2 + UseLayoutRounding +
   DpiTextRenderingHelper). Use when creating a new WPF app, bootstrapping
   project infrastructure, or when the user asks to set up WPF with dependency
-  injection, Serilog, MVVM, Material Design, or high-DPI / 多分辨率基础配置.
+  injection, Serilog, MVVM, or Material Design. Do not use for DPI audits
+  (wpf-dpi-static-check) or full multi-monitor adaptation
+  (wpf-multi-dpi-adaptation).
 ---
 
 # WPF 项目初始化
@@ -85,7 +87,7 @@ dotnet add package MailKit
 | MVVM | `CommunityToolkit.Mvvm` 源生成器：`[ObservableProperty]`、`[RelayCommand]` |
 | UI 主题 | MaterialDesign 5.x：`BundledTheme` + `MaterialDesign3.Defaults.xaml` |
 | 配置 | `appsettings.json` → `CopyToOutputDirectory: PreserveNewest` |
-| DPI | `app.manifest` 声明 `PerMonitorV2`；每个独立 `Window` 设 `UseLayoutRounding="True"` 并调用 `DpiTextRenderingHelper.Attach(this)`。**不要在 XAML 写死 `TextFormattingMode="Ideal"`**。后续发虚排查见 `wpf-multi-dpi-adaptation` skill。 |
+| DPI | `app.manifest` 声明 `PerMonitorV2`；每个独立 `Window` 设 `UseLayoutRounding="True"` 并调用 `DpiTextRenderingHelper.Attach(this)`。**不要在 XAML 写死 `TextFormattingMode="Ideal"`**。之后漏设用 `wpf-dpi-static-check` 搜；发虚长尾见 `wpf-multi-dpi-adaptation`。 |
 
 `AppPaths.AppName` 必须与 `{AppName}` 一致。
 
@@ -167,4 +169,4 @@ dotnet build {AppName}/{AppName}.csproj
 - 邮件服务依赖 `appsettings.json` 的 `Email` 节点，默认留空
 - Lottie `FileName` 绑定绝对路径；资源必须复制到输出目录
 - 保持改动最小，不添加用户未请求的业务逻辑
-- DPI 基础三项（manifest / UseLayoutRounding / DpiTextRenderingHelper）属于脚手架，不是可选优化；Viewbox、DropShadow、小数倍缩放等长尾问题仍按 `wpf-multi-dpi-adaptation` 排查，不要把整份适配文档塞进 init
+- DPI 基础三项（manifest / UseLayoutRounding / DpiTextRenderingHelper）属于脚手架，不是可选优化；不要加 Window 基类来「自动防漏」。之后漏设用 `wpf-dpi-static-check` 手动搜；Viewbox、DropShadow、小数倍缩放等长尾问题仍按 `wpf-multi-dpi-adaptation` 排查，不要把整份适配文档塞进 init
